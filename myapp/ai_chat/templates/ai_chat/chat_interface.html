@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat with {{ ai_patient.name }}</title>
+    
+    {% comment %}
+    You'll likely want to link to external CSS files for production,
+    but this inline style is here for quick setup.
+    {% endcomment %}
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            background-color: #f8f9fa;
+            color: #343a40;
+        }
+        .header-info {
+            padding: 15px 25px;
+            background-color: #e9ecef;
+            border-bottom: 1px solid #dee2e6;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        .header-info h1 {
+            color: #007bff;
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+        .header-info p {
+            margin-bottom: 3px;
+            font-size: 0.95em;
+        }
+        .chat-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* Space between messages */
+            background-color: #ffffff;
+        }
+        .message {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 20px;
+            line-height: 1.5;
+            word-wrap: break-word; /* Ensures long words wrap */
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .student-message {
+            background-color: #e0f7fa; /* Light blue */
+            align-self: flex-end;
+            margin-left: auto;
+            border-bottom-right-radius: 5px; /* Smoother corner for own messages */
+        }
+        .ai-message {
+            background-color: #ffe0b2; /* Light orange */
+            align-self: flex-start;
+            margin-right: auto;
+            border-bottom-left-radius: 5px; /* Smoother corner for AI messages */
+        }
+        /* The .ai-review-feedback styles are kept, but the display logic is removed from JS/HTML */
+        .ai-review-feedback {
+            background-color: #e6e6e6; /* Light gray */
+            color: #555;
+            font-size: 0.8em; /* Smaller font for review */
+            font-style: italic;
+            margin-left: 20px; /* Indent review slightly from student message */
+            margin-top: -5px; /* Pull it closer to the student message */
+            margin-bottom: 10px; /* Space before next turn */
+            padding: 8px 12px;
+            border-radius: 15px;
+            max-width: 75%;
+            align-self: flex-start; /* Aligns with the AI messages if needed */
+        }
+        .input-area {
+            padding: 15px 20px;
+            background-color: #f1f1f1;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .input-area input[type="text"] {
+            flex-grow: 1;
+            padding: 10px 15px;
+            border: 1px solid #ced4da;
+            border-radius: 25px;
+            font-size: 1em;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input-area input[type="text"]:focus {
+            border-color: #007bff;
+        }
+        .input-area button {
+            padding: 10px 20px;
+            background-color: #28a745; /* Green send button */
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s;
+        }
+        .input-area button:hover {
+            background-color: #218838;
+        }
+        .score-info {
+            font-weight: bold;
+            color: #007bff;
+        }
+        .task-completed-message {
+            color: green;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .start-new-attempt-form {
+            display: inline-block;
+            margin-top: 10px;
+        }
+        .start-new-attempt-form button {
+            background-color: #6c757d; /* Gray button */
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .start-new-attempt-form button:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-info">
+        <h1>Chatting with {{ ai_patient.name }}</h1>
+        <p><strong>Current Task:</strong> {{ current_task.title }} (Attempt {{ student_progress.current_attempt_number }})</p>
+        <p><strong>Task Description:</strong> {{ current_task.description }}</p>
+        <p><strong>AI Mood:</strong> {{ current_mood_description }}</p>
+        <p><strong>Your Current Score for this Attempt:</strong> <span id="current-score" class="score-info">{{ student_progress.current_doctor_score_for_task }}</span></p>
+        
+        {% if student_progress.current_doctor_score_for_task >= 70 %}
+            <p class="task-completed-message" id="task-completed-alert">AI indicates task goals were met!</p>
+            <form id="new-attempt-form" class="start-new-attempt-form" method="post" action="{% url 'start_new_attempt' ai_patient.id %}">
+                {% csrf_token %}
+                <button type="submit">Start New Attempt for This Task</button>
+            </form>
+        {% endif %}
+    </div>
+
+    <div class="chat-container" id="chat-messages">
+        {% for message in chat_history %}
+            {% if message.user_message %}
+                <div class="message student-message">
+                    <strong>You:</strong> {{ message.user_message }}
+                </div>
+                {# REMOVED: AI Review Feedback block #}
+            {% endif %}
+            {% if message.ai_message %}
+                <div class="message ai-message">
+                    <strong>{{ ai_patient.name }}:</strong> {{ message.ai_message }}
+                </div>
+            {% endif %}
+        {% empty %}
+            <p style="text-align: center; color: #6c757d;">Start the conversation!</p>
+        {% endfor %}
+    </div>
+
+    <div class="input-area">
+        <input type="text" id="chat-input" placeholder="Type your message...">
+        <button id="send-button">Send</button>
+    </div>
+
+    {% comment %}
+    CSRF token for AJAX POST requests
+    {% endcomment %}
+    {% csrf_token %}
+
+    <script>
+        const chatInput = document.getElementById('chat-input');
+        const sendButton = document.getElementById('send-button');
+        const chatMessagesDiv = document.getElementById('chat-messages');
+        const currentScoreSpan = document.getElementById('current-score');
+        const taskCompletedAlert = document.getElementById('task-completed-alert');
+        const newAttemptForm = document.getElementById('new-attempt-form');
+        
+        // Get CSRF token from the meta tag or hidden input generated by Django
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value; 
+
+        // Function to scroll chat to the bottom
+        function scrollToBottom() {
+            chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+        }
+
+        // Send message on button click or Enter key press
+        sendButton.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        function sendMessage() {
+            const message = chatInput.value.trim();
+            if (message) {
+                // Add student message to UI immediately
+                const studentMsgDiv = document.createElement('div');
+                studentMsgDiv.className = 'message student-message';
+                studentMsgDiv.innerHTML = `<strong>You:</strong> ${message}`;
+                chatMessagesDiv.appendChild(studentMsgDiv);
+                
+                chatInput.value = ''; // Clear input
+                chatInput.disabled = true; // Disable input while waiting for AI
+                sendButton.disabled = true;
+
+                scrollToBottom(); // Scroll to show new message
+
+                fetch(window.location.href, { // Send to the current URL (same view)
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': csrftoken, // Include CSRF token
+                    },
+                    body: `user_message=${encodeURIComponent(message)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Error: ' + data.error);
+                        // Re-enable input and remove the user message if there was an error
+                        chatMessagesDiv.removeChild(studentMsgDiv); 
+                    } else {
+                        // REMOVED: AI review feedback display logic
+                        // if (data.ai_review_feedback) {
+                        //     const reviewMsgDiv = document.createElement('div');
+                        //     reviewMsgDiv.className = 'message ai-review-feedback';
+                        //     reviewMsgDiv.innerHTML = `<strong>AI Review:</strong> ${data.ai_review_feedback}`;
+                        //     chatMessagesDiv.appendChild(reviewMsgDiv);
+                        // }
+
+                        // Add AI message to UI
+                        const aiMsgDiv = document.createElement('div');
+                        aiMsgDiv.className = 'message ai-message';
+                        aiMsgDiv.innerHTML = `<strong>${data.patient_name}:</strong> ${data.ai_message}`;
+                        chatMessagesDiv.appendChild(aiMsgDiv);
+
+                        // Update score dynamically
+                        currentScoreSpan.textContent = data.new_doctor_score;
+
+                        // Show task completed alert if applicable
+                        if (data.task_completed_by_ai) {
+                            if (taskCompletedAlert) { // Check if element exists before changing
+                                taskCompletedAlert.style.display = 'block'; // Make visible
+                            }
+                            if (newAttemptForm) {
+                                newAttemptForm.style.display = 'inline-block'; // Make visible
+                            }
+                            // Optionally, alert or display a notification
+                            alert(`Task "${data.current_task_title}" completed! You scored ${data.new_doctor_score}.`);
+                        } else {
+                            if (taskCompletedAlert) {
+                                taskCompletedAlert.style.display = 'none'; // Hide if not completed
+                            }
+                            if (newAttemptForm) {
+                                newAttemptForm.style.display = 'none';
+                            }
+                        }
+                    }
+                    scrollToBottom(); // Scroll to bottom after adding new messages
+                })
+                .catch(error => {
+                    console.error('Error sending message:', error);
+                    alert('An error occurred. Please try again.');
+                    chatMessagesDiv.removeChild(studentMsgDiv); // Remove the sent message if there was an error
+                })
+                .finally(() => {
+                    // Always re-enable input and button
+                    chatInput.disabled = false;
+                    sendButton.disabled = false;
+                    chatInput.focus(); // Put focus back on the input
+                });
+            }
+        }
+
+        // --- REFRESH/LEAVE PAGE WARNING ---
+        window.onbeforeunload = function() {
+            // This message will be displayed by the browser in its confirmation dialog.
+            return "Are you sure you want to leave? Your current chat progress might be lost.";
+        };
+        // --- END REFRESH/LEAVE PAGE WARNING ---
+
+        // Initial scroll to bottom when page loads
+        document.addEventListener('DOMContentLoaded', scrollToBottom);
+
+        // Hide task completed alert and new attempt button initially if score is below 70
+        // This handles page load for existing sessions
+        if (parseInt(currentScoreSpan.textContent) < 70) {
+            if (taskCompletedAlert) {
+                taskCompletedAlert.style.display = 'none';
+            }
+            if (newAttemptForm) {
+                newAttemptForm.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
