@@ -17,11 +17,11 @@ class Institution(models.Model):
     address = models.TextField(blank=True, null=True,
                                help_text="Physical address of the institution.")
     contact_person = models.CharField(max_length=100, blank=True, null=True,
-                                      help_text="Main contact person at the institution.")
+                                     help_text="Main contact person at the institution.")
     license_key = models.CharField(max_length=255, unique=True, blank=True, null=True,
-                                   help_text="Unique key provided to the institution for access.")
+                                  help_text="Unique key provided to the institution for access.")
     is_active = models.BooleanField(default=True,
-                                    help_text="Whether this institution's access is currently active.")
+                                   help_text="Whether this institution's access is currently active.")
 
     class Meta:
         verbose_name = "Institution"
@@ -82,8 +82,8 @@ class Student(models.Model):
     institution = models.ForeignKey(Institution, on_delete=models.CASCADE, related_name='students',
                                     help_text="The institution this student belongs to.")
     student_group = models.ForeignKey(StudentGroup, on_delete=models.SET_NULL, null=True, blank=True,
-                                      related_name='students_in_group',
-                                      help_text="The student group/class this student belongs to.")
+                                     related_name='students_in_group',
+                                     help_text="The student group/class this student belongs to.")
     # Add any other student-specific fields like student ID, program, etc.
     student_id = models.CharField(max_length=50, unique=True, blank=True, null=True)
     program_of_study = models.CharField(max_length=100, blank=True, null=True)
@@ -135,7 +135,7 @@ class AIPatientTask(models.Model):
     task_number = models.PositiveIntegerField(
         help_text="Order of the task for this patient (e.g., 1, 2, 3...).")
     title = models.CharField(max_length=100,
-                             help_text="Short title for this task (e.g., 'Build Rapport', 'Explore Trauma').")
+                            help_text="Short title for this task (e.g., 'Build Rapport', 'Explore Trauma').")
     description = models.TextField(
         help_text="Detailed description of what the student needs to achieve in this task. Shown to the student.")
     student_goals = models.TextField(blank=True, null=True,
@@ -166,8 +166,9 @@ class AIPatientTask(models.Model):
 
 class StudentAIPatientProgress(models.Model):
     """
-    Tracks a specific student's current progress through an AI patient's tasks.
-    This holds the live state (current task, attempt number, score).
+    Tracks a specific student's *active* progress through an AI patient's tasks.
+    This holds the live state (current task, current attempt number, current session score).
+    There should only be ONE such record for a given student-patient_profile pair at any time.
     """
     student = models.ForeignKey(Student, on_delete=models.CASCADE,
                                 help_text="The student who is progressing through this AI patient's tasks.")
@@ -175,19 +176,20 @@ class StudentAIPatientProgress(models.Model):
                                         help_text="The AI patient whose tasks the student is attempting.")
     
     current_task = models.ForeignKey(AIPatientTask, on_delete=models.SET_NULL, null=True, blank=True,
-                                     help_text="The current task the student is on for this AI patient. Null if all tasks completed.")
+                                     help_text="The current task the student is on for this AI patient. Null if all tasks completed or no task started.")
     
     current_attempt_number = models.PositiveIntegerField(default=1,
-                                                         help_text="The current attempt number for the active task.")
+                                                         help_text="The current attempt number for the active task. This corresponds to an entry in StudentTaskAttempt.")
 
     current_doctor_score_for_task = models.IntegerField(default=0,
-                                                        help_text="Student's performance score for the current task (0-100). Resets per task attempt.")
+                                                        validators=[MinValueValidator(0), MaxValueValidator(100)],
+                                                        help_text="Student's performance score for the current attempt on the current task (0-100). Resets per task attempt.")
 
     last_updated = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('student', 'patient_profile') # A student has one progress record per AI patient
+        unique_together = ('student', 'patient_profile') # A student has one active progress record per AI patient
         verbose_name = "Student AI Patient Progress"
         verbose_name_plural = "Student AI Patient Progresses"
 
@@ -199,6 +201,7 @@ class StudentAIPatientProgress(models.Model):
         """
         Increments the attempt number for the current task and resets the score.
         Call this if a student explicitly wants to retry the current task.
+        A new StudentTaskAttempt record should be created for this new attempt.
         """
         if self.current_task:
             self.current_attempt_number += 1
@@ -208,21 +211,63 @@ class StudentAIPatientProgress(models.Model):
         return False
 
 
+class StudentTaskAttempt(models.Model):
+    """
+    Records each distinct attempt a student makes on a specific AI Patient Task,
+    including its final state (score, completed/not completed, timestamps).
+    This model provides a comprehensive history of all task attempts.
+    """
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='task_attempts')
+    patient_profile = models.ForeignKey(AIPatientProfile, on_delete=models.CASCADE, related_name='task_attempts_patient')
+    task = models.ForeignKey(AIPatientTask, on_delete=models.CASCADE, related_name='attempts')
+    
+    attempt_number = models.PositiveIntegerField(
+        help_text="The sequential number of this attempt for the given student and task."
+    )
+    
+    final_score = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        default=0,
+        help_text="The final score achieved for this attempt (0-100)."
+    )
+    
+    is_completed = models.BooleanField(
+        default=False,
+        help_text="True if the task completion criteria were met in this attempt."
+    )
+    
+    start_time = models.DateTimeField(auto_now_add=True,
+                                      help_text="Timestamp when this attempt started.")
+    end_time = models.DateTimeField(null=True, blank=True,
+                                    help_text="Timestamp when this attempt ended (e.g., task completed, or new attempt started).")
+
+    class Meta:
+        ordering = ['start_time'] # Order attempts chronologically
+        unique_together = ('student', 'task', 'attempt_number') # Ensures a unique record for each specific attempt
+        verbose_name = "Student Task Attempt"
+        verbose_name_plural = "Student Task Attempts"
+
+    def __str__(self):
+        status = "Completed" if self.is_completed else "Not Completed"
+        return (f"{self.student.user.username} - {self.patient_profile.name} "
+                f"Task '{self.task.title}' Attempt {self.attempt_number}: {status} (Score: {self.final_score})")
+
+
 class TaskPermission(models.Model):
     """
     Controls which AI Patient Tasks are currently accessible for students in a specific StudentGroup.
     Managed by teachers.
     """
     student_group = models.ForeignKey(StudentGroup, on_delete=models.CASCADE, related_name='task_permissions',
-                                      help_text="The student group/class for which this permission applies.")
+                                     help_text="The student group/class for which this permission applies.")
     ai_patient_task = models.ForeignKey(AIPatientTask, on_delete=models.CASCADE, related_name='permissions',
-                                        help_text="The specific AI Patient Task being controlled.")
+                                         help_text="The specific AI Patient Task being controlled.")
     
     is_open = models.BooleanField(default=False,
                                   help_text="True if this task is currently open for students in this group.")
     
     opened_at = models.DateTimeField(null=True, blank=True,
-                                     help_text="Timestamp when the task was opened for this group.",auto_now_add=True)
+                                      help_text="Timestamp when the task was opened for this group.",auto_now_add=True)
     opened_by_teacher = models.ForeignKey(Teacher, on_delete=models.SET_NULL, null=True, blank=True,
                                           help_text="The teacher who opened this task for the group.")
 
@@ -239,8 +284,7 @@ class TaskPermission(models.Model):
 
 class Messages(models.Model):
     """
-    Stores each conversational turn (student message + AI reply),
-    now including an AI-generated review of the user's message.
+    Stores each conversational turn (student message + AI reply).
     """
     bot = models.ForeignKey('AIPatientProfile', on_delete=models.CASCADE, related_name='messages_received',
                             help_text="The AI patient profile involved in this message turn.")
@@ -257,12 +301,10 @@ class Messages(models.Model):
     user_message = models.TextField(null=True, blank=True, help_text="The message sent by the student.")
     ai_message = models.TextField(null=True, blank=True, help_text="The reply generated by the AI patient.")
     
-    # --- NEW FIELDS FOR USER MESSAGE REVIEW ---
     ai_review_feedback = models.TextField(null=True, blank=True,
                                           help_text="AI's automated textual review/feedback on the user's message.")
     ai_review_raw_response = models.JSONField(null=True, blank=True,
                                                help_text="Raw JSON response from the AI reviewer model (for debugging).")
-    # --- END NEW FIELDS ---
 
     timestamp = models.DateTimeField(auto_now_add=True, help_text="Timestamp of this message turn.")
 
@@ -275,10 +317,6 @@ class Messages(models.Model):
         ordering = ['timestamp']
         verbose_name = "Message Turn"
         verbose_name_plural = "Message Turns"
-
-    def __str__(self):
-        return f"Turn {self.attempt_number} ({self.student.user.username} - {self.bot.name}, Task {self.task.task_number if self.task else 'N/A'}): {self.user_message[:30]}..."
-
 
     def __str__(self):
         return f"Turn {self.attempt_number} ({self.student.user.username} - {self.bot.name}, Task {self.task.task_number if self.task else 'N/A'}): {self.user_message[:30]}... / {self.ai_message[:30]}..."

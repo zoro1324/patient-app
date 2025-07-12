@@ -1,10 +1,12 @@
 from django.shortcuts import render
 from django.contrib.auth import logout
+from django.shortcuts import redirect
+from django.urls import reverse
 # Create your views here.
 
 def logout_view(request):
     logout(request)
-    return render(request, 'rt_chat/logout.html')
+    return redirect(reverse("rt_chat:login"))
 
 
 def realtime_chat(request):

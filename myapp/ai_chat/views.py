@@ -1,14 +1,23 @@
-# In your app's views.py (e.g., ai_therapy/views.py)
+# ai_therapy/views.py
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseBadRequest, JsonResponse
+from django.db import models # Keep this, as Max is used
+from django.utils import timezone # Import for accurate timestamps
 import json
-import os 
-import logging 
-from .models import AIPatientProfile, StudentAIPatientProgress, Messages, TaskPermission, Student, AIPatientTask 
+import os
+import logging
 import google.generativeai as genai
-from django.db import models # <--- Add this line
+from .models import (
+    AIPatientProfile,
+    StudentAIPatientProgress,
+    Messages,
+    TaskPermission,
+    Student,
+    AIPatientTask,
+    StudentTaskAttempt # New: Import the StudentTaskAttempt model
+)
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +27,8 @@ def _generate_content_with_gemini(messages, mime_type='text/plain', temperature=
     try:
         # It's highly recommended to store API keys in environment variables
         # or a secure configuration management system, NOT directly in code.
-        api_key = "AIzaSyCFHFXcQk-m6sY4JsTcqz51YA63kld67Q8" # Your provided API key
+        # For demonstration, keeping it as provided, but strongly advise against this in production.
+        api_key = "AIzaSyCFHFXcQk-m6sY4JsTcqz51YA63kld67Q8" 
 
         if not api_key:
             logger.error("GEMINI_API_KEY environment variable not set.")
@@ -53,18 +63,26 @@ def chat_with_ai_patient(request, patient_id, task_id):
     ai_patient_profile = get_object_or_404(AIPatientProfile, id=patient_id)
     current_task = get_object_or_404(AIPatientTask, id=task_id, patient_profile=ai_patient_profile)
 
-    # --- Retrieve/Create the SINGLE StudentAIPatientProgress record for this student, patient, task ---
-    # This remains outside the if/else for GET/POST, as there's only one such record
-    student_progress, created = StudentAIPatientProgress.objects.get_or_create(
+    # --- Retrieve/Create the SINGLE StudentAIPatientProgress record for this student and patient ---
+    # This record tracks the student's *overall* progress with a patient and their *current* attempt
+    student_progress, created_progress = StudentAIPatientProgress.objects.get_or_create(
         student=student,
         patient_profile=ai_patient_profile,
-        current_task=current_task,
-        # No 'is_completed' here as per your request
-        # 'current_attempt_number' will be managed below for new attempts
-        defaults={'current_doctor_score_for_task': 0} # Set default for initial creation if new
+        defaults={'current_task': None, 'current_attempt_number': 0, 'current_doctor_score_for_task': 0}
     )
 
-    # --- Check Task Permissions (logic remains the same) ---
+    # If the student_progress record was just created, or if the current_task in it is different,
+    # we need to set its current_task to the one being accessed.
+    # This ensures student_progress.current_task always points to the task they are currently on.
+    if created_progress or student_progress.current_task != current_task:
+        # If the task changes, it implies a new session/attempt for that specific task
+        student_progress.current_task = current_task
+        student_progress.current_attempt_number = 0 # Will be incremented on GET
+        student_progress.current_doctor_score_for_task = 0
+        student_progress.save()
+
+
+    # --- Check Task Permissions ---
     if student.student_group:
         task_permission = TaskPermission.objects.filter(
             student_group=student.student_group,
@@ -73,10 +91,6 @@ def chat_with_ai_patient(request, patient_id, task_id):
 
         if not task_permission or not task_permission.is_open:
             logger.warning(f"Task {current_task.title} (ID: {task_id}) for student group {student.student_group.name} is not open.")
-            # If the progress record was just created for an inaccessible task, you might want to delete it.
-            # However, if it's an existing one, just showing the message is fine.
-            if created: # Only delete if it was just created (prevent clutter for blocked tasks)
-                student_progress.delete()
             return render(request, 'ai_chat/task_not_open.html', {
                 'patient_name': ai_patient_profile.name,
                 'task_title': current_task.title,
@@ -84,8 +98,6 @@ def chat_with_ai_patient(request, patient_id, task_id):
             })
     else:
         logger.warning(f"Student {student.user.username} is not assigned to a student group for task permission check for task {current_task.title} (ID: {task_id}).")
-        if created: # Only delete if it was just created
-            student_progress.delete()
         return render(request, 'ai_chat/task_not_open.html', {
             'patient_name': ai_patient_profile.name,
             'task_title': current_task.title,
@@ -95,25 +107,27 @@ def chat_with_ai_patient(request, patient_id, task_id):
 
     # --- MAIN LOGIC FOR HANDLING ATTEMPTS AND REQUEST METHODS ---
     if request.method == 'GET':
-        # On a GET request (page load or refresh), we want to start a new logical attempt.
-        # Find the highest existing attempt number for this student, patient, and task from Messages.
-        max_attempt_in_messages = Messages.objects.filter(
-            student=student,
-            bot=ai_patient_profile,
-            task=current_task
-        ).aggregate(max_attempt=models.Max('attempt_number'))['max_attempt']
-
-        # Determine the new attempt number for the current session
-        new_attempt_for_session = (max_attempt_in_messages or 0) + 1
-
-        # Update the single student_progress record to reflect this new attempt
-        student_progress.current_attempt_number = new_attempt_for_session
+        # On a GET request (page load or refresh), we want to start a new logical attempt for this task.
+        # Increment the attempt number for this specific task and student.
+        student_progress.current_attempt_number += 1
         student_progress.current_doctor_score_for_task = 0 # Reset score for new attempt
         student_progress.save() # Save the updated attempt number and reset score
 
-        logger.info(f"Student {student.user.username} starting logical attempt {new_attempt_for_session} for task {current_task.title}.")
+        # Create a new StudentTaskAttempt record for this *new* attempt
+        # End time will be set when the attempt is finished (e.g., task completed, or new attempt started)
+        current_task_attempt = StudentTaskAttempt.objects.create(
+            student=student,
+            patient_profile=ai_patient_profile,
+            task=current_task,
+            attempt_number=student_progress.current_attempt_number,
+            final_score=0, # Initial score for this attempt
+            is_completed=False, # Not completed yet
+            start_time=timezone.now()
+        )
+        logger.info(f"Student {student.user.username} starting a NEW attempt ({current_task_attempt.attempt_number}) for task {current_task.title}.")
 
-        # Initial mental state for the first render of a new attempt
+
+        # Initial mental state for the first render of a new attempt comes from the AIPatientTask
         display_mental_state = {
             "happiness": current_task.task_happiness,
             "sadness": current_task.task_sadness,
@@ -141,19 +155,32 @@ def chat_with_ai_patient(request, patient_id, task_id):
 
     elif request.method == 'POST':
         # For a POST request, we continue with the current logical attempt
-        # which is identified by student_progress.current_attempt_number that was set on GET.
-        # If student_progress wasn't found (e.g., direct POST without GET first), handle error.
-        if not student_progress: # This check is primarily for robustness, should not happen normally
-            logger.error(f"No StudentAIPatientProgress found for POST request from {student.user.username}, patient {patient_id}, task {task_id}.")
-            return JsonResponse({'error': 'No active session found. Please refresh the page to start.'}, status=404)
-
+        # which is identified by student_progress.current_attempt_number.
+        
         user_message_content = request.POST.get('user_message', '').strip()
         if not user_message_content:
             logger.warning(f"Empty message received from student {student.user.username}.")
             return JsonResponse({'error': 'Message cannot be empty.'}, status=400)
 
+        # Get the specific StudentTaskAttempt record for this active attempt
+        try:
+            active_attempt = StudentTaskAttempt.objects.get(
+                student=student,
+                patient_profile=ai_patient_profile,
+                task=current_task,
+                attempt_number=student_progress.current_attempt_number,
+                end_time__isnull=True # Ensure it's the currently ongoing attempt
+            )
+        except StudentTaskAttempt.DoesNotExist:
+            logger.error(f"No active StudentTaskAttempt found for student {student.user.username}, patient {patient_id}, task {task_id}, attempt {student_progress.current_attempt_number}. This should not happen on POST if GET was handled correctly.")
+            return JsonResponse({'error': 'Session error. Please refresh the page to start a new attempt.'}, status=404)
+        except StudentTaskAttempt.MultipleObjectsReturned:
+            logger.error(f"Multiple active StudentTaskAttempt records found for student {student.user.username}, patient {patient_id}, task {task_id}, attempt {student_progress.current_attempt_number}. Data integrity issue.")
+            return JsonResponse({'error': 'Data integrity error. Please contact support.'}, status=500)
+
+
         # --- Determine the current mental state for the LLM prompt ---
-        # Get the very last AI message for THIS specific attempt
+        # Get the very last AI message for THIS specific attempt from the Messages model
         last_ai_message = Messages.objects.filter(
             student=student,
             bot=ai_patient_profile,
@@ -180,13 +207,14 @@ def chat_with_ai_patient(request, patient_id, task_id):
                 "fear": current_task.task_fear,
             }
 
+        # Create a new Messages record for the user's input
         message_record = Messages.objects.create(
             student=student,
             bot=ai_patient_profile,
             task=current_task,
             attempt_number=student_progress.current_attempt_number, # Associate with current attempt number
             user_message=user_message_content,
-            ai_message=None,
+            ai_message=None, # Will be filled by AI later
             ai_review_feedback=None
         )
 
@@ -231,16 +259,19 @@ def chat_with_ai_patient(request, patient_id, task_id):
         # --- AI Patient's Reply (SECOND LLM CALL) ---
         ai_reply = 'I apologize, I am unable to respond at the moment.'
         new_doctor_score = student_progress.current_doctor_score_for_task # Start with current score
-        task_completed_by_ai = False # From LLM, not saved to model
+        task_completed_by_ai = False # From LLM, not saved directly to StudentAIPatientProgress
+
+        # LLM response metadata will store the full JSON output from the patient reply LLM
         llm_response_metadata = {} 
 
+        # Build chat history for the LLM
         chat_history_for_llm = []
         prior_messages = Messages.objects.filter(
             student=student,
             bot=ai_patient_profile,
             task=current_task,
             attempt_number=student_progress.current_attempt_number # Filter by current attempt number
-        ).exclude(id=message_record.id).order_by('timestamp')
+        ).exclude(id=message_record.id).order_by('timestamp') # Exclude the current message_record as it's not yet completed
 
         for msg in prior_messages:
             if msg.user_message:
@@ -248,6 +279,7 @@ def chat_with_ai_patient(request, patient_id, task_id):
             if msg.ai_message:
                 chat_history_for_llm.append({"role": "model", "parts": [{"text": msg.ai_message}]})
         
+        # Add the current user message to the history for the LLM call
         chat_history_for_llm.append({"role": "user", "parts": [{"text": user_message_content}]})
 
         # --- Prepare mental_state for the prompt as a formatted string ---
@@ -264,6 +296,7 @@ def chat_with_ai_patient(request, patient_id, task_id):
         )
 
         # --- Build the patient_reply_prompt ---
+        # The system instruction for the LLM, setting its persona and task
         patient_reply_prompt = f"""
         You are a patient named {ai_patient_profile.name}. You are struggling with mental health issues.
 
@@ -325,7 +358,7 @@ def chat_with_ai_patient(request, patient_id, task_id):
             # --- Update current_mental_state_values with new values from LLM for frontend and next prompt ---
             if 'current_mental_state' in llm_response_metadata:
                  for mood_key, mood_value in llm_response_metadata['current_mental_state'].items():
-                     if mood_key in current_mental_state_values:
+                     if mood_key in current_mental_state_values: # Only update if the key exists
                          current_mental_state_values[mood_key] = mood_value
 
         except (json.JSONDecodeError, Exception) as e:
@@ -340,9 +373,19 @@ def chat_with_ai_patient(request, patient_id, task_id):
         message_record.ai_review_raw_response = ai_review_raw_response_json
         message_record.save()
 
-        # Update student's doctor score for the current attempt
+        # Update student's doctor score for the current attempt in StudentAIPatientProgress
         student_progress.current_doctor_score_for_task = new_doctor_score
         student_progress.save()
+
+        # Update the StudentTaskAttempt record
+        active_attempt.final_score = new_doctor_score
+        active_attempt.is_completed = task_completed_by_ai
+        # If task is completed, set the end_time for the current attempt
+        if task_completed_by_ai:
+            active_attempt.end_time = timezone.now()
+            logger.info(f"Student {student.user.username} COMPLETED task {current_task.title} (Attempt {active_attempt.attempt_number}).")
+        active_attempt.save()
+
 
         # Return a JSON response for AJAX-based chat
         return JsonResponse({
@@ -350,11 +393,9 @@ def chat_with_ai_patient(request, patient_id, task_id):
             'ai_message': ai_reply,
             'ai_review_feedback': ai_review_feedback,
             'new_doctor_score': new_doctor_score,
-            'task_completed_by_ai': task_completed_by_ai, # Still return this, but not stored on model
+            'task_completed_by_ai': task_completed_by_ai,
             'current_task_title': current_task.title,
             'current_attempt': student_progress.current_attempt_number,
             'patient_name': ai_patient_profile.name,
             'current_mental_state': current_mental_state_values
         })
-    
-print("hello world")
