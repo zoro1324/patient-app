@@ -18,7 +18,7 @@ from .models import (
     AIPatientTask,
     StudentTaskAttempt # New: Import the StudentTaskAttempt model
 )
-
+from decouple import config
 logger = logging.getLogger(__name__)
 
 # --- Updated _generate_content_with_gemini helper ---
@@ -28,7 +28,7 @@ def _generate_content_with_gemini(messages, mime_type='text/plain', temperature=
         # It's highly recommended to store API keys in environment variables
         # or a secure configuration management system, NOT directly in code.
         # For demonstration, keeping it as provided, but strongly advise against this in production.
-        api_key = "AIzaSyCFHFXcQk-m6sY4JsTcqz51YA63kld67Q8" 
+        api_key = config('GEMINI_API_KEY')
 
         if not api_key:
             logger.error("GEMINI_API_KEY environment variable not set.")
