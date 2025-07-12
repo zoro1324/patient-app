@@ -1,0 +1,204 @@
+:root {
+  --primary-color: #5B6DCD;
+  --secondary-color: #D4D4F7;
+  --background-color: #F9FAFB;
+  --text-color: #1F2937;
+  --accent-color: #C68EFD;
+  --alert-color: #E9A5F1;
+}
+
+/* General Layout */
+.dashboard-body {
+  background: linear-gradient(to bottom, #F9F7FD, #FED2E2);
+  color: var(--text-color);
+  font-family: "Segoe UI", sans-serif;
+  overflow-x: hidden;
+}
+
+/* Wrapper Fade Animation */
+.fade-out {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.5s ease-in-out;
+}
+
+/* Navbar */
+.navbar {
+  height: 70px; /* Previously 56px */
+  padding-top: 12px;
+  padding-bottom: 12px;
+  background-color: var(--primary-color) !important;
+}
+
+/* Navbar Brand - Center vertically */
+.navbar-brand {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #fff !important;
+  line-height: 1;
+}
+
+.navbar .btn {
+  font-size: 1rem;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+/* Optional: Add hover effect */
+.navbar .btn:hover {
+  background-color: #ffffff;
+  color: var(--primary-color);
+  border-color: #ffffff;
+  transition: 0.3s ease-in-out;
+}
+
+
+/* Sidebar */
+.profile-sidebar {
+  position: fixed;
+  top: 56px;
+  left: -250px;
+  width: 250px;
+  height: 100%;
+  background-color: #FED2E2;
+  border-right: 1px solid #ccc;
+  padding: 1.5rem;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+  z-index: 1040;
+  transition: left 0.3s ease;
+}
+
+.profile-sidebar.visible {
+  left: 0;
+}
+
+.profile-sidebar h5 {
+  color: var(--primary-color);
+}
+
+.profile-sidebar ul li {
+  margin-bottom: 10px;
+}
+
+/* Main Section */
+.dashboard-main {
+  padding-top: 80px;
+}
+
+/* Daily Tip */
+.daily-tip {
+  font-style: italic;
+  font-size: 1.2rem;
+}
+
+/* Module Cards */
+.module-card {
+  background-color: #ffffff;
+  border-radius: 10px;
+  border: none;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.module-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* Accent Text */
+.text-accent {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+/* Accent Button */
+.btn-accent {
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  transition: all 0.3s ease-in-out;
+}
+
+.btn-accent:hover {
+  background-color: var(--alert-color);
+  color: #1F2937;
+}
+
+/* Danger Button */
+.btn-danger {
+  background-color: var(--alert-color);
+  border: none;
+}
+
+.btn-danger:hover {
+  background-color: #c62828;
+  color: white;
+}
+
+/* Button Transition */
+button {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Progress Styling */
+.progress {
+  height: 16px;
+  background-color: #e0e0e0;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  background-color: var(--primary-color);
+  font-size: 0.75rem;
+  line-height: 1;
+  color: white;
+  border-radius: 20px;
+  transition: width 0.4s ease;
+}
+
+/* Flex Layout for Progress & Button */
+.module-progress-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.module-progress-action .progress {
+  flex: 1;
+  max-width: 70%;
+}
+
+.module-progress-action button {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Card Hover Animation */
+.card {
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive Tweaks */
+@media (max-width: 768px) {
+  .profile-sidebar {
+    width: 200px;
+  }
+
+  .daily-tip {
+    font-size: 1rem;
+  }
+
+  .btn-accent,
+  .btn-success {
+    width: 100%;
+  }
+}

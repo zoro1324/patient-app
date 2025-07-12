@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Navbar | AI Virtual Patient</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Bootstrap Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+    />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="C:\Users\DELL\Desktop\vitual Ai\patient-app\myapp\rt_chat\static\rt_chat\dashboard.css" />
+  </head>
+
+  <body>
+    <!-- Navbar Only -->
+    <nav class="navbar navbar-expand-lg px-4 bg-dark text-white">
+      <!-- Left - Profile Toggler -->
+      <button class="btn btn-outline-light btn-lg me-3" onclick="toggleSidebar()">
+        <i class="bi bi-person-circle"></i>
+      </button>
+      <a class="navbar-brand fw-bold text-white" href="#">AI Patient</a>
+
+      <!-- Right - Activity & Logout -->
+      <div class="ms-auto d-flex gap-2">
+        <button class="btn btn-outline-light">Activity</button>
+        <button class="btn btn-outline-light" onclick="logout()">Logout</button>
+      </div>
+    </nav>
+
+    <!-- Sidebar -->
+      <aside class="profile-sidebar" id="profileSidebar">
+        <div class="sidebar-content">
+          <h5 class="fw-bold">👤 Student Profile</h5>
+          <ul class="list-unstyled mt-3">
+            <li><strong>Name:</strong> Nisha M</li>
+            <li><strong>Department:</strong> Psychology</li>
+            <li><strong>Username:</strong> nisha.m</li>
+            <li class="mt-3">
+              <button class="btn btn-sm btn-accent w-100 p-2">Change Password</button>
+            </li>
+          </ul>
+        </div>
+      </aside>
+
+    <!-- Optional Sidebar Toggle Script -->
+    <script>
+      function toggleSidebar() {
+        const sidebar = document.getElementById("profileSidebar");
+        if (sidebar) {
+          sidebar.classList.toggle("visible");
+        }
+      }
+
+      function logout() {
+        const wrapper = document.querySelector(".dashboard-wrapper");
+        if (wrapper) {
+          wrapper.classList.add("fade-out");
+          setTimeout(() => {
+            window.location.href = "login.html";
+          }, 500);
+        } else {
+          // Fallback logout
+          window.location.href = "login.html";
+        }
+      }
+    </script>
+  </body>
+</html>
