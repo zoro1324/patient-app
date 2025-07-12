@@ -356,3 +356,5 @@ def chat_with_ai_patient(request, patient_id, task_id):
             'patient_name': ai_patient_profile.name,
             'current_mental_state': current_mental_state_values
         })
+    
+print("hello world")
