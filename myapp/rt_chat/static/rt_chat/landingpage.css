@@ -1,0 +1,262 @@
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: linear-gradient(to bottom, #F9F7FD, #FED2E2);
+  background-color: #E9A5F1; /* Soft Blush Pink */
+  color: #1F2937; /* Deep Charcoal for text */
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* Navbar */
+.navbar {
+  background-color: #8F87F1; /* Soft Indigo */
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  min-height: 70px;
+}
+
+.navbar-brand {
+  font-size: 1.5rem;
+  color: #ffffff !important;
+}
+
+.nav-link {
+  position: relative;
+  transition: color 0.3s ease;
+  font-size: 1.1rem;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  color: #ffffff !important;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 0%;
+  background-color: #C68EFD; /* Light Purple */
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+/* Hero Section */
+.landing-container {
+  background: linear-gradient(to bottom, #F9F7FD, #FED2E2);
+  height: 100vh;
+  background-color: #E9A5F1;
+  padding-top: 70px;
+}
+
+.text-box {
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(200, 150, 240, 0.2); /* soft purple glow */
+  max-width: 600px;
+  padding: 40px;
+  margin: 20px auto;
+  animation: fadeInUp 1s ease;
+}
+
+/* Info Sections */
+.info-section {
+  padding: 80px 20px;
+  background: linear-gradient(to bottom, #F9F7FD, #FED2E2);
+}
+
+.info-section h2 {
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #8F87F1; /* Primary Indigo */
+}
+
+.info-section p {
+  color: #1F2937;
+  font-size: 1.1rem;
+}
+
+/* Buttons */
+.btn {
+  transition: all 0.3s ease-in-out;
+  font-size: 1.1rem;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  font-weight: 500;
+  border-radius: 8px;
+}
+
+/* Primary Button */
+.btn-primary {
+  background-color: #C68EFD; /* Light Purple */
+  border-color: #C68EFD;
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background-color: #E9A5F1; /* Pastel Magenta on hover */
+  border-color: #E9A5F1;
+  color: #1F2937;
+  transform: scale(1.05);
+  box-shadow: 0 5px 20px rgba(233, 165, 241, 0.3);
+}
+
+/* Outline Button (Demo) */
+.btn-outline-secondary {
+  border-color: #E9A5F1;
+  color: #E9A5F1;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #E9A5F1;
+  color: #ffffff;
+  transform: scale(1.05);
+  box-shadow: 0 5px 20px rgba(233, 165, 241, 0.3);
+}
+
+.btn:active {
+  transform: scale(0.95);
+}
+
+/* Animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* General Background */
+body {
+  background-color: #FED2E2;
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* Accent Heading */
+.text-accent {
+  color: #8F87F1; /* Lavender Blue */
+  font-weight: 600;
+}
+
+/* Card Styling */
+.team-card {
+  background-color: #FED2E2; /* Light Orchid */
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 6px 25px rgba(143, 135, 241, 0.3);
+  transition: all 0.4s ease;
+  transform-style: preserve-3d;
+}
+
+.team-card:hover {
+  transform: translateY(-10px) scale(1.03);
+  box-shadow: 0 12px 40px rgba(198, 142, 253, 0.4);
+}
+
+/* Profile Image */
+.card-img-top {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid white;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Card Text */
+.card-title {
+  font-weight: 600;
+  color: #1F2937; /* Deep Charcoal */
+}
+
+.card-subtitle {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.card-text {
+  font-size: 0.95rem;
+  color: #1F2937;
+}
+
+/* Button Style */
+.btn-accent {
+  background-color: #C68EFD;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 8px 20px;
+  transition: all 0.3s ease-in-out;
+}
+
+.btn-accent:hover {
+  background-color: #E9A5F1;
+  color: #1F2937;
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(233, 165, 241, 0.3);
+}
+
+/* Help Section Card */
+.help-card {
+  background-color: #ffffff; /* Match the soft lavender-pink theme */
+  border-radius: 16px;
+  padding: 20px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.help-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 25px rgba(198, 142, 253, 0.3);
+}
+
+.help-card .card-title {
+  color: #8F87F1; /* Primary heading color */
+  font-weight: 600;
+}
+
+.help-card .card-text {
+  color: #1F2937;
+  font-size: 1rem;
+}
+
+/* Contact Section */
+.contact-card {
+  background-color: #FED2E2; /* Soft Blush Pink */
+  border-radius: 16px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  color: #1F2937;
+}
+
+.contact-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 25px rgba(233, 165, 241, 0.2);
+}
+
+.contact-card h5 {
+  color: #8F87F1; /* Accent Heading */
+}
+
+.contact-card .btn-accent {
+  background-color: #C68EFD;
+  border: none;
+  color: white;
+  border-radius: 25px;
+  padding: 10px 24px;
+  transition: all 0.3s ease-in-out;
+}
+
+.contact-card .btn-accent:hover {
+  background-color: #E9A5F1;
+  color: #1F2937;
+  transform: scale(1.05);
+}
+

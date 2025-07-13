@@ -1,0 +1,149 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Virtual Patient Platform</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'rt_chat\landingpage.css' %}" />
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark fixed-top px-4">
+    <a class="navbar-brand fw-bold" href="#home">AI Patient</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item"><a class="nav-link" href="#home">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="#about">About Us</a></li>
+        <li class="nav-item"><a class="nav-link" href="#help">Help</a></li>
+        <li class="nav-item"><a class="nav-link" href="#contact">Contact Us</a></li>
+        <li class="nav-item">
+          <button class="btn btn-light btn-sm ms-3" onclick="location.href='{% url 'login' %}'">Login</button>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Django Messages -->
+  <div class="container mt-5 pt-5">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+
+  <!-- Hero Section -->
+  <div id="home" class="landing-container d-flex justify-content-center align-items-center">
+    <div class="text-box text-center p-4">
+      <h1 class="fw-bold mb-3">AI Virtual Patient Platform</h1>
+      <p class="lead text-muted mb-4">
+        Practice psychological communication with realistic AI-powered patients.
+      </p>
+      <div class="d-flex flex-column flex-md-row justify-content-center gap-3 mt-4">
+        <button class="btn btn-primary btn-sm px-5 py-3" onclick="location.href='#'">Chat</button>
+        <button class="btn btn-primary btn-sm px-5 py-3" onclick="location.href='#'">Voice Call</button>
+        <button class="btn btn-outline-secondary btn-sm px-5 py-3" onclick="watchDemo()">🎥 Video Call</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- About Us -->
+  <section id="about" class="info-section text-center">
+    <div class="container">
+      <h2 class="text-accent mb-4">Meet Our Team</h2>
+      <p class="text-muted mb-5">
+        We are a team of innovators building an AI-powered simulation platform to help students improve psychological consultation and diagnosis skills through virtual patient interactions.
+      </p>
+
+      <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for member in team_members %}
+        <div class="col">
+          <div class="card team-card h-100 text-center">
+            <img src="{% static member.image %}" class="card-img-top rounded-circle mx-auto mt-3" alt="{{ member.name }}" />
+            <div class="card-body">
+              <h5 class="card-title">{{ member.name }}</h5>
+              <h6 class="card-subtitle mb-2 text-muted">{{ member.role }}</h6>
+              <p class="card-text">{{ member.bio }}</p>
+              <button class="btn btn-accent mt-2">View Profile</button>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <!-- Help Section -->
+  <section id="help" class="info-section text-center">
+    <div class="container">
+      <h2 class="text-accent mb-4">How to Use</h2>
+      <p class="text-muted mb-5">
+        Follow these easy steps to interact with our virtual AI patients and build communication skills.
+      </p>
+      <div class="row row-cols-1 row-cols-md-3 g-4">
+        <div class="col">
+          <div class="card help-card h-100 shadow-sm border-0">
+            <div class="card-body">
+              <h5 class="card-title">1. Create Account / Login</h5>
+              <p class="card-text">Sign in easily using your email. No complicated steps.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="card help-card h-100 shadow-sm border-0">
+            <div class="card-body">
+              <h5 class="card-title">2. Choose a Scenario</h5>
+              <p class="card-text">Pick psychological consultation situations for learning.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="card help-card h-100 shadow-sm border-0">
+            <div class="card-body">
+              <h5 class="card-title">3. Chat & Learn</h5>
+              <p class="card-text">Practice conversations and boost your confidence.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Us -->
+  <section id="contact" class="info-section text-center">
+    <div class="container">
+      <h2 class="text-accent mb-4">Contact Us</h2>
+      <p class="text-muted mb-5">Have questions or need support? Reach out to us anytime.</p>
+      <div class="row justify-content-center">
+        <div class="col-md-6">
+          <div class="card contact-card p-4 shadow-sm">
+            <h5 class="fw-bold mb-2">Email</h5>
+            <p class="text-muted">support@aivirtualpatient.com</p>
+            <h5 class="fw-bold mt-3 mb-2">Phone</h5>
+            <p class="text-muted">+91 98765 43210</p>
+            <h5 class="fw-bold mt-3 mb-2">Location</h5>
+            <p class="text-muted">KGiSL Institute of Technology, Tamil Nadu</p>
+            <button class="btn btn-accent mt-3">Send a Message</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function watchDemo() {
+      alert("Demo coming soon!");
+    }
+  </script>
+</body>
+</html>
