@@ -48,31 +48,7 @@ body {
 
 /* Hero Section */
 .landing-container {
-  height: 100vh;
-  width: 100%;
-   background: linear-gradient(-45deg, 
-  #8F87F1 0%, 
-  #8F87F1 30%, 
-  #F9F7FD 35%, 
-  #f799bc 40%, 
-  #f799bc 100%
-);
-
-  background-size: 400% 400%;
-  animation: color 8s ease-in-out infinite;
   padding-top: 70px;
-}
-@keyframes color{
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-  
 }
 
 .text-box {
@@ -90,18 +66,6 @@ body {
 /* Info Sections */
 .info-section {
   padding: 80px 20px;
-  height: 100vh;
-  width: 100%;
-   background: linear-gradient(-45deg, 
-  #8F87F1 0%, 
-  #8F87F1 30%, 
-  #F9F7FD 35%, 
-  #f799bc 40%, 
-  #f799bc 100%
-);
-
-  background-size: 400% 400%;
-  animation: color 8s ease-in-out infinite;
 }
 
 
@@ -141,18 +105,6 @@ body {
   box-shadow: 0 5px 20px rgba(233, 165, 241, 0.3);
 }
 
-/* Outline Button (Demo) */
-.btn-outline-secondary {
-  border-color: #E9A5F1;
-  color: #E9A5F1;
-}
-
-.btn-outline-secondary:hover {
-  background-color: #E9A5F1;
-  color: #ffffff;
-  transform: scale(1.05);
-  box-shadow: 0 5px 20px rgba(233, 165, 241, 0.3);
-}
 
 .btn:active {
   transform: scale(0.95);

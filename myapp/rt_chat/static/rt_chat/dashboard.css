@@ -9,32 +9,9 @@
 
 /* General Layout */
 .dashboard-body {
-  height: 100vh;
-  width: 100%;
-  background: linear-gradient(-45deg, 
-  #8F87F1 0%, 
-  #8F87F1 30%, 
-  #F9F7FD 35%, 
-  #f799bc 40%, 
-  #f799bc 100%
-);
-  background-size: 400% 400%;
-  animation: color 6s ease-in-out infinite;
   color: var(--text-color);
   font-family: "Segoe UI", sans-serif;
   overflow-x: hidden;
-}
-@keyframes color{
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-  
 }
 
 /* Wrapper Fade Animation */
