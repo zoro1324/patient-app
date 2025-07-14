@@ -1,19 +1,31 @@
-.login-container {
-   height: 100vh;
+body, html {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.register-body{
+  height: 100vh;
   width: 100%;
-   background: linear-gradient(-45deg, 
+  background: linear-gradient(-45deg, 
   #8F87F1 0%, 
   #8F87F1 30%, 
   #F9F7FD 35%, 
   #f799bc 40%, 
   #f799bc 100%
 );
-
   background-size: 400% 400%;
   animation: color 8s ease-in-out infinite;
+}
+.register-container {
+  display: flex; /* Flex for centering */
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
   padding: 2rem;
 }
-@keyframes color{
+
+@keyframes color {
   0% {
     background-position: 0% 50%;
   }
@@ -23,26 +35,27 @@
   100% {
     background-position: 0% 50%;
   }
-  
 }
 
-.login-card {
+.register-card {
   background-color: rgba(255, 255, 255, 0.5);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border-radius: 16px;
   width: 100%;
-  max-width: 420px;
+  max-width: 500px;
+  padding: 2rem; /* Ensure form inputs have space inside */
   color: #1f2937;
   transition: transform 0.4s ease, box-shadow 0.4s ease;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
 }
 
-.login-card:hover {
+.register-card:hover {
   transform: scale(1.02);
   box-shadow: 0 12px 40px rgba(198, 142, 253, 0.3);
 }
 
+/* Button Styling */
 .btn-accent {
   background-color: #c68efd;
   color: white;
@@ -59,6 +72,7 @@
   transform: scale(1.05);
 }
 
+/* Typography and Fields */
 .text-accent {
   color: #8f87f1;
 }
@@ -72,6 +86,20 @@
   text-decoration: underline;
 }
 
+.alert-danger {
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
 
+/* Input Styles */
+.register-card .form-label {
+  font-weight: 500;
+}
 
-
+.register-card input.form-control {
+  border-radius: 10px;
+}
+.register-card input.form-control:focus{
+    box-shadow: none;
+    border-color: #c68efd;
+}
