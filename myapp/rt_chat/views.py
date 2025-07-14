@@ -4,6 +4,8 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from .forms import SignUpForm
 from django.contrib.auth import login
+from .models import TeamMember
+
 # Create your views here.
 
 def register(request):
@@ -21,7 +23,9 @@ def logout_view(request):
     return redirect(reverse("rt_chat:login"))
 
 def home(request):
-    return render(request, 'rt_chat/landingpage.html')
+    team_members = TeamMember.objects.all()
+
+    return render(request, 'rt_chat/landingpage.html', {'team_members': team_members})
 
 def realtime_chat(request):
     return render(request, 'rt_chat/realtime_chat.html')

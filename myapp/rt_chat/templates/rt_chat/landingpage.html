@@ -22,9 +22,15 @@
         <li class="nav-item"><a class="nav-link" href="#about">About Us</a></li>
         <li class="nav-item"><a class="nav-link" href="#help">Help</a></li>
         <li class="nav-item"><a class="nav-link" href="#contact">Contact Us</a></li>
+        {% if not request.user.is_authenticated %}
         <li class="nav-item">
           <button class="btn btn-light btn-sm ms-3" onclick="location.href='{% url 'rt_chat:login' %}'">Login</button>
         </li>
+        {% else %}
+        <li class="nav-item">
+          <button class="btn btn-light btn-sm ms-3" onclick="location.href='{% url 'rt_chat:logout' %}'">Log out</button>
+        </li>
+        {% endif %}
       </ul>
     </div>
   </nav>
@@ -69,11 +75,11 @@
         {% for member in team_members %}
         <div class="col">
           <div class="card team-card h-100 text-center">
-            <img src="{% static member.image %}" class="card-img-top rounded-circle mx-auto mt-3" alt="{{ member.name }}" />
+            <img src="{{member.format_image_url}}" class="card-img-top rounded-circle mx-auto mt-3" alt="{{ member.name }}" />
             <div class="card-body">
               <h5 class="card-title">{{ member.name }}</h5>
               <h6 class="card-subtitle mb-2 text-muted">{{ member.role }}</h6>
-              <p class="card-text">{{ member.bio }}</p>
+              <p class="card-text">{{ member.contribution }}</p>
               <button class="btn btn-accent mt-2">View Profile</button>
             </div>
           </div>
