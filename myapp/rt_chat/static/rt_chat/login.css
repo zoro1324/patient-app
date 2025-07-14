@@ -1,21 +1,20 @@
 .login-container {
-  min-height: 100vh;
-  background: linear-gradient(to bottom, #F9F7FD, #FED2E2);
-  background-color: #f9fafb;
   padding: 2rem;
 }
 
-.login-card {
-  background-color: #fed2e2;
+.login-card,.register-card {
+  background-color: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-radius: 16px;
   width: 100%;
-  max-width: 420px;
+  max-width: 500px;
   color: #1f2937;
   transition: transform 0.4s ease, box-shadow 0.4s ease;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
 }
 
-.login-card:hover {
+.login-card:hover,.register-card:hover {
   transform: scale(1.02);
   box-shadow: 0 12px 40px rgba(198, 142, 253, 0.3);
 }
@@ -47,6 +46,23 @@
 
 .text-link:hover {
   text-decoration: underline;
+}
+.alert-danger {
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+/* Input Styles */
+.register-card .form-label {
+  font-weight: 500;
+}
+
+.register-card input.form-control {
+  border-radius: 10px;
+}
+.register-card input.form-control:focus{
+    box-shadow: none;
+    border-color: #c68efd;
 }
 
 

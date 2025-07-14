@@ -1,0 +1,79 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register | AI Patient</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="{% static 'rt_chat\login.css' %}" />
+  <link rel="stylesheet" href="{% static 'rt_chat\background.css' %}" />
+</head>
+<body class="register-body">
+
+<div class="register-container d-flex align-items-center justify-content-center vh-100 px-3">
+  <div class="register-card p-5 shadow">
+    <h2 class="mb-4 text-accent text-center">Create Account</h2>
+
+    {% if form.errors %}
+      <div class="alert alert-danger">Please fix the errors below.</div>
+    {% endif %}
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="POST" action="{% url 'register' %}">
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <label for="id_name" class="form-label fw-semibold">Full Name</label>
+        {{ form.name|as_widget(attrs={'class': 'form-control', 'placeholder': 'Your Name'}) }}
+        {{ form.name.errors }}
+      </div>
+
+      <div class="mb-3">
+        <label for="id_username" class="form-label fw-semibold">Username</label>
+        {{ form.username|as_widget(attrs={'class': 'form-control', 'placeholder': 'e.g. nisha.m'}) }}
+        {{ form.username.errors }}
+      </div>
+
+      <div class="mb-3">
+        <label for="id_dob" class="form-label fw-semibold">Date of Birth</label>
+        {{ form.dob|as_widget(attrs={'class': 'form-control'}) }}
+        {{ form.dob.errors }}
+      </div>
+
+      <div class="mb-3">
+        <label for="id_email" class="form-label fw-semibold">Email</label>
+        {{ form.email|as_widget(attrs={'class': 'form-control', 'placeholder': 'you@example.com'}) }}
+        {{ form.email.errors }}
+      </div>
+
+      <div class="mb-3">
+        <label for="id_password1" class="form-label fw-semibold">Password</label>
+        {{ form.password1|as_widget(attrs={'class': 'form-control', 'placeholder': 'Create a password'}) }}
+        {{ form.password1.errors }}
+      </div>
+
+      <div class="mb-4">
+        <label for="id_password2" class="form-label fw-semibold">Confirm Password</label>
+        {{ form.password2|as_widget(attrs={'class': 'form-control', 'placeholder': 'Repeat your password'}) }}
+        {{ form.password2.errors }}
+      </div>
+
+      <div class="d-grid mb-3">
+        <button type="submit" class="btn btn-accent">Register</button>
+      </div>
+
+      <div class="text-center">
+        <small>Already have an account? <a href="{% url 'login' %}" class="text-link">Login</a></small>
+      </div>
+    </form>
+  </div>
+</div>
+
+</body>
+</html>
