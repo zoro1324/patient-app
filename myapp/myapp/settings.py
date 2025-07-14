@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'ai_chat',
     'rt_chat',
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [

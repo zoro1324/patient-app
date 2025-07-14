@@ -1,20 +1,16 @@
-# myapp/asgi.py (inside the inner myapp directory)
+"""
+ASGI config for myapp project.
+
+It exposes the ASGI callable as a module-level variable named ``application``.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/5.1/howto/deployment/asgi/
+"""
 
 import os
+
 from django.core.asgi import get_asgi_application
-from channels.routing import ProtocolTypeRouter, URLRouter
-from channels.auth import AuthMiddlewareStack
-import zego_app.routing # Assuming 'zego_app' is the name of your Django app for Zego logic
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'myapp.settings') # <--- Ensure 'myapp.settings' here too
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'myapp.settings')
 
-django_asgi_app = get_asgi_application()
-
-application = ProtocolTypeRouter({
-    "http": django_asgi_app,
-    "websocket": AuthMiddlewareStack(
-        URLRouter(
-            zego_app.routing.websocket_urlpatterns
-        )
-    ),
-})
+application = get_asgi_application()
